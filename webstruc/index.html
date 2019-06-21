@@ -383,7 +383,7 @@
                 <h2 id="crawling-structure-website">Crawling Structure Website</h2>
 <p>Friska Fatmawatiningrum (160411100084)</p>
 <p>Target website : https://thegorbalsla.com/</p>
-<p>Program yang dibutuhkan : Python 3.6 (dengan library requests, beautifulsoup4, networkx, matplotlib)</p>
+<p>Program yang dibutuhkan : Python 3.6 (dengan library requests, beautifulsoup4, networkx, matplotlib,pandas)</p>
 <p><strong>Step :</strong></p>
 <ol>
 <li>
@@ -391,87 +391,89 @@
 </li>
 </ol>
 <p>​    dIgunakan untuk mengambil data dari sebuah website. Dan kali ini akan mengambil data berupa link. Dengan meng-import library BeautifulSoup4 terlebih dahulu.</p>
-<p><code>import requests
+<pre><code>   import requests
    from bs4 import BeautifulSoup
    import networkx as nx
-   import matplotlib.pyplot as plt</code></p>
-<p>```
-   def simplifiedURL(url):</p>
-<pre><code>   if "www." in url: #untuk mengecek www
-       ind = url.index("www.")+4
-       url = url[ind:]
-   if not "http" in url: #untuk mengecek http/https
-       url = "http://"+url
-   if url[-1] == "/": #untuk garing penutup link
-       url = url[:-1]
-   return url
+   import matplotlib.pyplot as plt
 </code></pre>
-<p>```</p>
+
+<pre><code>   def simplifiedURL(url):
+
+       if &quot;www.&quot; in url: #untuk mengecek www
+           ind = url.index(&quot;www.&quot;)+4
+           url = url[ind:]
+       if not &quot;http&quot; in url: #untuk mengecek http/https
+           url = &quot;http://&quot;+url
+       if url[-1] == &quot;/&quot;: #untuk garing penutup link
+           url = url[:-1]
+       return url
+</code></pre>
+
 <p>Fungsi diatas digunakan untuk menyamakan format url, agar tidak ada url yang sama.  apabila depan link nya menggunakan www atau http namun isi webnya sama. Misal https://thegorbalsla.com/ akan dianggap berbeda dengan thegorbalsia.com.</p>
-<p>```
-   def getAllLinks(src):</p>
-<pre><code>#mencegah error apabila link yang terdapat di html nya tidak berfungsi
-   try:
-    #mengambil halaman html
-       ind = src.find(':')+3
-       url = src[ind:]
-       page = requests.get(src)
+<pre><code>   def getAllLinks(src):
 
-       #mengubah html ke object dengan beautiful soup
-       soup = BeautifulSoup(page.content, 'html.parser')
-       #mengambil semua tag &lt;a&gt; yang berada di html karena link di simpan di dalam tag &lt;a&gt;
-       tags = soup.findAll("a")
+    #mencegah error apabila link yang terdapat di html nya tidak berfungsi
+       try:
+        #mengambil halaman html
+           ind = src.find(':')+3
+           url = src[ind:]
+           page = requests.get(src)
 
-       links = []
-       for tag in tags:
-       #mencegah error apabila link tidak memiliki href
-           try:
-               link = tag['href']
-               if not link in links and 'http' in link:
-               #memasukkan link yang didapat didalam list
-                   links.append(link)
-           except KeyError:
-               pass
-       return links
-   except:
-       return list()
+           #mengubah html ke object dengan beautiful soup
+           soup = BeautifulSoup(page.content, 'html.parser')
+           #mengambil semua tag &lt;a&gt; yang berada di html karena link di simpan di dalam tag &lt;a&gt;
+           tags = soup.findAll(&quot;a&quot;)
+
+           links = []
+           for tag in tags:
+           #mencegah error apabila link tidak memiliki href
+               try:
+                   link = tag['href']
+                   if not link in links and 'http' in link:
+                   #memasukkan link yang didapat didalam list
+                       links.append(link)
+               except KeyError:
+                   pass
+           return links
+       except:
+           return list()
 </code></pre>
-<p>```</p>
+
 <p>Fungsi diatas digunakan untuk mendapatkan semua link dalam html website yang akan di crawl.</p>
-<p>```
-   def crawl(url, max_deep,  show=False, deep=0):
+<pre><code>   def crawl(url, max_deep,  show=False, deep=0):
     #menampung hasil return
-       global edgelist</p>
-<pre><code>   #mengambil fungsi simplifiedURL(url) disimpan di var url
-   url = simplifiedURL(url)
+       global edgelist
 
-   #mengambil fungsi getAllLinks(url) disimpan di var links
-   links = getAllLinks(url)
+       #mengambil fungsi simplifiedURL(url) disimpan di var url
+       url = simplifiedURL(url)
 
-   #iterasi kedalaman crawl
-   deep += 1
+       #mengambil fungsi getAllLinks(url) disimpan di var links
+       links = getAllLinks(url)
 
-   if show:
-       if deep == 1:
-           print("(%d)%s" %(len(links),url))
-       else:
-           print("|", end="")
-           for i in range(deep-1): print("--", end="")
-           print("(%d)%s" %(len(links),url))
+       #iterasi kedalaman crawl
+       deep += 1
 
-   for link in links:
-    #membentuk format jalan (edge, dari url ke link)
-       edge = (url,link)
+       if show:
+           if deep == 1:
+               print(&quot;(%d)%s&quot; %(len(links),url))
+           else:
+               print(&quot;|&quot;, end=&quot;&quot;)
+               for i in range(deep-1): print(&quot;--&quot;, end=&quot;&quot;)
+               print(&quot;(%d)%s&quot; %(len(links),url))
 
-       #apabila edge belum dicatat maka akan di masukkan ke list
-       if not edge in edgelist:
-           edgelist.append(edge)
+       for link in links:
+        #membentuk format jalan (edge, dari url ke link)
+           edge = (url,link)
 
-       #cek kedalaman jika belum sampai kedalaman maksimal yang diinginkan maka tidak berhenti
-       if (deep != max_deep):
-           crawl(link, max_deep, show, deep)
+           #apabila edge belum dicatat maka akan di masukkan ke list
+           if not edge in edgelist:
+               edgelist.append(edge)
+
+           #cek kedalaman jika belum sampai kedalaman maksimal yang diinginkan maka tidak berhenti
+           if (deep != max_deep):
+               crawl(link, max_deep, show, deep)
 </code></pre>
-<p>```</p>
+
 <p>Fungsi diatas digunakan untuk melakukan crawling berdasarkan 4 parameter. </p>
 <p><strong><em>def crawl(url, max_deep,  show=False, deep=0):</em></strong> </p>
 <ul>
@@ -528,6 +530,18 @@ nx.draw_networkx_labels(g, pos, label)
 #menampilkan figure (layout/window untuk tampilan graphnya)
 plt.axis(&quot;off&quot;)
 plt.show()
+</code></pre>
+
+<p>Tambahan untuk mengurutkan hasil pagerank menggunakan code seperti berikut:</p>
+<pre><code>#Mengurutkan hasil pagerank
+urutpr = data.copy()
+for x in range(len(urutpr)):
+    for y in range(len(urutpr)):
+        if urutpr[x][0] &gt; urutpr[y][0]:
+            urutpr[x],urutpr[y] = urutpr[y],urutpr[x]
+
+urutpr = pd.DataFrame(urutpr, None, (&quot;PageRank&quot;, &quot;Node&quot;))
+print(urutpr)
 </code></pre>
 
 <h5 id="referensi">Referensi :</h5>
